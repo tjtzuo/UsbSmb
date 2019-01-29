@@ -1,0 +1,16 @@
+; UsbSmb.def : Declares the module parameters for the DLL.
+
+LIBRARY      "UsbSmb"
+DESCRIPTION  'UsbSmb Windows Dynamic Link Library'
+
+EXPORTS
+    ; Explicit exports can go here
+	UsbInit			@1
+	UsbGetVersion	@2
+	UsbSmbWrite		@3
+	UsbSmbRead		@4
+	UsbHdqWrite		@5
+	UsbHdqRead		@6
+	UsbEepromWrite	@7
+	UsbEepromRead	@8
+	UsbSendIoCmd	@9
