@@ -14,7 +14,8 @@ JNIEXPORT jshort JNICALL Java_com_pfc_lib_UsbSmb_usbGetVersion(JNIEnv *, jclass,
 }
 
 JNIEXPORT jboolean JNICALL Java_com_pfc_lib_UsbSmb_usbSmbWrite
-		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jbyte bPEC, jbyte len, jbyteArray buf)
+//		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jbyte bPEC, jbyte len, jbyteArray buf)
+		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jboolean bPEC, jint len, jbyteArray buf)
 {
 	PBYTE pBuf = (PBYTE)env->GetByteArrayElements(buf, NULL);
 	jboolean result = UsbSmbWrite(nDev, addr, cmd, bPEC, len, pBuf);
@@ -24,7 +25,8 @@ JNIEXPORT jboolean JNICALL Java_com_pfc_lib_UsbSmb_usbSmbWrite
 }
 
 JNIEXPORT jboolean JNICALL Java_com_pfc_lib_UsbSmb_usbSmbRead
-		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jbyte bPEC, jbyte len, jbyteArray buf)
+//		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jbyte bPEC, jbyte len, jbyteArray buf)
+		(JNIEnv *env, jclass, jint nDev, jbyte addr, jbyte cmd, jboolean bPEC, jint len, jbyteArray buf)
 {
 	PBYTE pBuf = (PBYTE)env->GetByteArrayElements(buf, NULL);
 	jboolean result = UsbSmbRead(nDev, addr, cmd, bPEC, len, pBuf);

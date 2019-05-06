@@ -26,18 +26,18 @@ JNIEXPORT jshort JNICALL Java_com_pfc_lib_UsbSmb_usbGetVersion
 /*
  * Class:     com_pfc_lib_UsbSmb
  * Method:    usbSmbWrite
- * Signature: (IBBBB[B)Z
+ * Signature: (IBBZI[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_pfc_lib_UsbSmb_usbSmbWrite
-  (JNIEnv *, jclass, jint, jbyte, jbyte, jbyte, jbyte, jbyteArray);
+  (JNIEnv *, jclass, jint, jbyte, jbyte, jboolean, jint, jbyteArray);
 
 /*
  * Class:     com_pfc_lib_UsbSmb
  * Method:    usbSmbRead
- * Signature: (IBBBB[B)Z
+ * Signature: (IBBZI[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_pfc_lib_UsbSmb_usbSmbRead
-  (JNIEnv *, jclass, jint, jbyte, jbyte, jbyte, jbyte, jbyteArray);
+  (JNIEnv *, jclass, jint, jbyte, jbyte, jboolean, jint, jbyteArray);
 
 /*
  * Class:     com_pfc_lib_UsbSmb

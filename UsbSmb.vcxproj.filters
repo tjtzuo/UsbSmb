@@ -37,12 +37,6 @@
     <ClInclude Include="UsbSmb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\program files\java\jdk1.8.0_192\include\jni.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\program files\java\jdk1.8.0_192\include\win32\jni_md.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="com_pfc_lib_usbsmb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
