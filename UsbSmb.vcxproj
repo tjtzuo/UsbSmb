@@ -264,7 +264,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="com_pfc_lib_usbsmb.h" />
-    <ClInclude Include="mpusbapi.h" />
     <ClInclude Include="UsbSmb.h" />
   </ItemGroup>
   <ItemGroup>

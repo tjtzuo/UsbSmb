@@ -31,9 +31,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mpusbapi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UsbSmb.h">
       <Filter>Header Files</Filter>
     </ClInclude>

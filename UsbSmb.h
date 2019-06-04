@@ -11,6 +11,7 @@ BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue);
 BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue);
 BOOL UsbEepromWrite(BYTE nDev, UINT loc, PBYTE pBuf);
 BOOL UsbEepromRead(BYTE nDev, UINT loc, PBYTE pBuf);
+BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand);
 
 #ifdef  __cplusplus
 }
