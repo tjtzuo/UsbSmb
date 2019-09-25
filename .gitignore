@@ -32,8 +32,11 @@ _ReSharper*/
 packages/
 # Visual C++ cache files
 ipch/
+*.opensdf
 *.sdf
 # Visual Studio 6 build log
 *.plg
 # Visual Studio 6 workspace options file
 *.opt
+# Files built by Visual Studio
+*.scc
