@@ -1,18 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UsbSmb", "UsbSmb.vcxproj", "{04E7A116-656B-E71F-F176-52889905009A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UsbSmb", "UsbSmb.vcxproj", "{B85CF6FC-E1CE-4109-86F5-02906D23D406}"
 EndProject
 Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 1
+		SccProjectUniqueName0 = UsbSmb.vcxproj
+		SccProjectName0 = \u0022$/UsbSmb\u0022,\u0020PSIAAAAA
+		SccLocalPath0 = .
+		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{04E7A116-656B-E71F-F176-52889905009A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{04E7A116-656B-E71F-F176-52889905009A}.Debug|Win32.Build.0 = Debug|Win32
-		{04E7A116-656B-E71F-F176-52889905009A}.Release|Win32.ActiveCfg = Release|Win32
-		{04E7A116-656B-E71F-F176-52889905009A}.Release|Win32.Build.0 = Release|Win32
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Debug|Win32.Build.0 = Debug|Win32
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Debug|x64.ActiveCfg = Debug|x64
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Debug|x64.Build.0 = Debug|x64
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Release|Win32.ActiveCfg = Release|Win32
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Release|Win32.Build.0 = Release|Win32
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Release|x64.ActiveCfg = Release|x64
+		{B85CF6FC-E1CE-4109-86F5-02906D23D406}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

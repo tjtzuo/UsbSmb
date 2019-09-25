@@ -5,44 +5,7 @@
  *********************************************************************
  * FileName:        mpusbapi.h
  * Dependencies:    None
- * Compiler:        C++
- * Company:         Copyright (C) 2004 by Microchip Technology, Inc.
  *
- * Software License Agreement
- *
- * The software supplied herewith by Microchip Technology Incorporated
- * (the “Company”) for its PICmicro® Microcontroller is intended and
- * supplied to you, the Company’s customer, for use solely and
- * exclusively on Microchip PICmicro Microcontroller products. The
- * software is owned by the Company and/or its supplier, and is
- * protected under applicable copyright laws. All rights are reserved.
- * Any use in violation of the foregoing restrictions may subject the
- * user to criminal sanctions under applicable laws, as well as to
- * civil liability for the breach of the terms and conditions of this
- * license.
- *
- * THIS SOFTWARE IS PROVIDED IN AN “AS IS” CONDITION. NO WARRANTIES,
- * WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT LIMITED
- * TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- * PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. THE COMPANY SHALL NOT,
- * IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
- * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
- *
- * revision             Date        Comment
- *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * v0.0.0.0             9/2/04      Implemented MPUSBGetDeviceLink()
- * v1.0.0.0             11/19/04    Original version 1.00 completed
- * v1.0.1.0             03/24/08    Slight update to fix issue which
- *                                  was requiring admin run level to
- *                                  work correctly.
- * v1.1.0.0             05/22/08    Added the support for the
- *                                  following functions:
- *                                   MPUSBSetConfiguration()
- *                                   MPUSBGetDeviceDescriptor()
- *                                   MPUSBGetConfigurationDescriptor()
- *                                   MPUSBGetStringDescriptor()
- *                                  Modified MPUSBGetDLLVersion return
- *                                   format.
  ********************************************************************/
 
 #ifndef _MPUSBAPI_H_
@@ -58,6 +21,7 @@
 // It is very unlikely that a computer system will have more
 // then 127 USB devices attached to it. (single or multiple USB hosts)
 #define MAX_NUM_MPUSB_DEV           127
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBGetDLLVersion : get mpusbapi.dll revision level
@@ -77,7 +41,8 @@
 //                numbering format.  The format of this fuction was changed to
 //                match how the .DLL file number generation works.
 //
-DWORD (*MPUSBGetDLLVersion)(void);
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetDLLVersion(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBGetDeviceCount : Returns the number of devices with matching VID & PID
@@ -86,7 +51,8 @@ DWORD (*MPUSBGetDLLVersion)(void);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBGetDeviceCount)(PCHAR pVID_PID);
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetDeviceCount(PCHAR pVID_PID);
 
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBOpen : Returns the handle to the endpoint pipe with matching VID & PID
@@ -174,12 +140,13 @@ DWORD (*MPUSBGetDeviceCount)(PCHAR pVID_PID);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-HANDLE (*MPUSBOpen)(DWORD instance,         // Input
-                 PCHAR pVID_PID,            // Input
-                 PCHAR pEP,                 // Input
-                 DWORD dwDir,               // Input
-                 DWORD dwReserved);         // Input <Future Use>
-                 
+extern "C" __declspec(dllexport)
+HANDLE MPUSBOpen(DWORD instance,    // Input
+                 PCHAR pVID_PID,    // Input
+                 PCHAR pEP,         // Input
+                 DWORD dwDir,       // Input
+                 DWORD dwReserved); // Input <Future Use>
+
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBRead :
 //
@@ -204,7 +171,8 @@ HANDLE (*MPUSBOpen)(DWORD instance,         // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBRead)(HANDLE handle,           // Input
+extern "C" __declspec(dllexport)
+DWORD MPUSBRead(HANDLE handle,              // Input
                 PVOID pData,                // Output
                 DWORD dwLen,                // Input
                 PDWORD pLength,             // Output
@@ -235,7 +203,8 @@ DWORD (*MPUSBRead)(HANDLE handle,           // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBWrite)(HANDLE handle,          // Input
+extern "C" __declspec(dllexport)
+DWORD MPUSBWrite(HANDLE handle,             // Input
                  PVOID pData,               // Input
                  DWORD dwLen,               // Input
                  PDWORD pLength,            // Output
@@ -265,12 +234,13 @@ DWORD (*MPUSBWrite)(HANDLE handle,          // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBReadInt)(HANDLE handle,        // Input
+extern "C" __declspec(dllexport)
+DWORD MPUSBReadInt(HANDLE handle,           // Input
                    PVOID pData,             // Output
                    DWORD dwLen,             // Input
                    PDWORD pLength,          // Output
                    DWORD dwMilliseconds);   // Input
-                   
+
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBClose : closes a given handle.
 //
@@ -278,7 +248,8 @@ DWORD (*MPUSBReadInt)(HANDLE handle,        // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-BOOL (*MPUSBClose)(HANDLE handle);
+extern "C" __declspec(dllexport)
+BOOL MPUSBClose(HANDLE handle);
 
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBGetDeviceDescriptor : Returns the Device Descriptor Data
@@ -295,7 +266,8 @@ BOOL (*MPUSBClose)(HANDLE handle);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBGetDeviceDescriptor)(HANDLE handle,       // Input
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetDeviceDescriptor(HANDLE handle,       // Input
                                PVOID pDevDsc,       // Output
                                DWORD dwLen,         // Input
                                PDWORD pLength);     // Output
@@ -316,8 +288,9 @@ DWORD (*MPUSBGetDeviceDescriptor)(HANDLE handle,       // Input
 //	Note that "input" and "output" refer to the parameter designations in calls
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
-//
-DWORD (*MPUSBGetConfigurationDescriptor)(HANDLE handle,       // Input
+//      
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetConfigurationDescriptor(HANDLE handle,       // Input
                                UCHAR bIndex,        // Input
                                PVOID pDevDsc,       // Output
                                DWORD dwLen,         // Input
@@ -341,7 +314,8 @@ DWORD (*MPUSBGetConfigurationDescriptor)(HANDLE handle,       // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBGetStringDescriptor)(HANDLE handle,       // Input
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetStringDescriptor(HANDLE handle,       // Input
                                UCHAR bIndex,        // Input
                                USHORT wLangId,      // Input
                                PVOID pDevDsc,       // Output
@@ -364,7 +338,22 @@ DWORD (*MPUSBGetStringDescriptor)(HANDLE handle,       // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-DWORD (*MPUSBSetConfiguration)(HANDLE handle,         // Input
-                         USHORT bConfigSetting);           // Input
-#endif
+extern "C" __declspec(dllexport)
+DWORD MPUSBSetConfiguration(HANDLE handle,         // Input
+							USHORT bConfigSetting);// Input
 
+///////////////////////////////////////////////////////////////////////////////
+//	MPUSBGetDeviceLink : Returns the path to device hardware with a given
+//  instance number.
+//
+//	Note that "input" and "output" refer to the parameter designations in calls
+//	to this function, which are the opposite of common sense from the
+//	perspective of an application making the calls.
+//
+extern "C" __declspec(dllexport)
+DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
+                         PCHAR pVID_PID,    // Input
+                         PCHAR pPath,       // Output
+                         DWORD dwLen,       // Input
+                         PDWORD pLength);	// Output
+#endif
