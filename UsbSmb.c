@@ -155,11 +155,12 @@ DWORD ShowLastError(LPCTSTR str)
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         (LPTSTR) &lpMsgBuf,0, NULL );
     sprintf(buf, "%s\r\nFailed with error %d: %s",str,Error,lpMsgBuf);
-
+/*
 	MessageBox(NULL, buf, "Error", MB_OK|MB_SYSTEMMODAL);
 	//while(MessageBox(NULL, buf, "Error", MB_OK|MB_SYSTEMMODAL) != IDOK);
-
+*/
 //	TRACE("%s\n", buf);
+	OutputDebugString(buf);
 
 	return Error;
 }
