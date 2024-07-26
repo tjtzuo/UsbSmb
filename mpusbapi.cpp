@@ -187,7 +187,7 @@ DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
 	if( intf_detail == NULL)
 	{
 		SetupDiDestroyDeviceInfoList(info);
-        delete intf_detail;
+        //delete intf_detail;
 		return MPUSB_DEV_NO_INFO;
 	}// end if
 
@@ -205,7 +205,7 @@ DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
                                         NULL))
 	{
 		SetupDiDestroyDeviceInfoList(info);
-		delete intf_detail;
+		delete [] intf_detail;
 		return MPUSB_DEV_NO_INFO;
 	}// end if
 
@@ -215,7 +215,7 @@ DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
         if(MPUSBIsVidPidEqual(intf_detail->DevicePath, pVID_PID) == NULL)
         {
             SetupDiDestroyDeviceInfoList(info);
-		    delete intf_detail;
+		    delete [] intf_detail;
 		    return MPUSB_DEV_VIDPID_NOT_FOUND;
         }// end if
     }// end if
@@ -234,14 +234,14 @@ DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
         else
         {
             SetupDiDestroyDeviceInfoList(info);
-            delete intf_detail;
+            delete [] intf_detail;
             return MPUSB_FAIL;
         }// end if
     }// end if
 
 	// Clean up
 	SetupDiDestroyDeviceInfoList(info);
-	delete intf_detail;
+	delete [] intf_detail;
 	return MPUSB_SUCCESS;
 
 }// end MPUSBGetDeviceLink

@@ -144,7 +144,7 @@ BOOL CheckRCrc(BYTE addr, BYTE cmd, PBYTE buf)
 DWORD ShowLastError(LPCTSTR str)
 {
     DWORD Error = GetLastError();
-    LPVOID lpMsgBuf;
+    LPTSTR lpMsgBuf;
 	char buf[100] = {0};
 
     FormatMessage(
@@ -153,7 +153,7 @@ DWORD ShowLastError(LPCTSTR str)
         NULL,
         Error,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,0, NULL );
+        (LPTSTR) &lpMsgBuf, 0, NULL );
     sprintf(buf, "%s\r\nFailed with error %d: %s",str,Error,lpMsgBuf);
 /*
 	MessageBox(NULL, buf, "Error", MB_OK|MB_SYSTEMMODAL);
