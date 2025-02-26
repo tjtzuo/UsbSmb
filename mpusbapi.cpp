@@ -3,9 +3,47 @@
  *                  MPUSBAPI Library
  *
  *********************************************************************
- * FileName:        mpusbapi.c
+ * FileName:        mpusbapi.cpp
  * Dependencies:    See #include section below.
+ * Compiler:        Microsoft C++
+ * Company:         Copyright (C) 2008 by Microchip Technology, Inc.
  *
+ * Software License Agreement
+ *
+ * The software supplied herewith by Microchip Technology Incorporated
+ * (the “Company”) for its PICmicro® Microcontroller is intended and
+ * supplied to you, the Company’s customer, for use solely and
+ * exclusively on Microchip PICmicro Microcontroller products. The
+ * software is owned by the Company and/or its supplier, and is
+ * protected under applicable copyright laws. All rights are reserved.
+ * Any use in violation of the foregoing restrictions may subject the
+ * user to criminal sanctions under applicable laws, as well as to
+ * civil liability for the breach of the terms and conditions of this
+ * license.
+ *
+ * THIS SOFTWARE IS PROVIDED IN AN “AS IS” CONDITION. NO WARRANTIES,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT NOT LIMITED
+ * TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. THE COMPANY SHALL NOT,
+ * IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL OR
+ * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+ *
+ * revision             Date        Comment
+ *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * v0.0.0.0             9/2/04      Implemented MPUSBGetDeviceLink()
+ * v1.0.0.0             11/19/04    Original version 1.00 completed
+ * v1.0.1.0             03/24/08    Slight update to fix issue which
+ *                                  was requiring admin run level to
+ *                                  work correctly.
+ * v1.1.0.0             05/22/08    Added the support for the
+ *                                  following functions:
+ *                                   MPUSBSetConfiguration()
+ *                                   MPUSBGetDeviceDescriptor()
+ *                                   MPUSBGetConfigurationDescriptor()
+ *                                   MPUSBGetStringDescriptor()
+ *                                  Modified MPUSBGetDLLVersion return
+ *                                   format.
+ * v1.2.0.0             02/02/09    Fixed bugs in MPUSBRead() function
  ********************************************************************/
 
 #include <stdio.h>
@@ -19,7 +57,8 @@
 
 //#define MPUSBAPI_VERSION            0x00010000L   //revision 1.0.0.0
 //#define MPUSBAPI_VERSION            0x00010100L   //revision 1.0.1.0
-#define MPUSBAPI_VERSION            0x01010000L     //revision 1.1.0.0
+//#define MPUSBAPI_VERSION            0x01010000L   //revision 1.1.0.0
+#define MPUSBAPI_VERSION            0x01020000L     //revision 1.2.0.0
 
 #define	MPUSB_DEV_NO_INFO           2
 #define	MPUSB_DEV_INVALID_INST      3
@@ -769,6 +808,7 @@ DWORD MPUSBRead(HANDLE handle,          // Input
                         CancelIo(handle);
                         break;
                 }//end switch
+                break;
             }//end case
             default:
                 CancelIo(handle);
@@ -877,6 +917,7 @@ DWORD MPUSBWrite(HANDLE handle,         // Input
                         CancelIo(handle);
                         break;
                 }//end switch
+                break;
             }//end case
             default:
                 CancelIo(handle);
@@ -996,6 +1037,7 @@ DWORD MPUSBReadInt(HANDLE handle,       // Input
                         CancelIo(handle);
                         break;
                 }//end switch
+                break;
             }//end case
             default:
                 CancelIo(handle);
