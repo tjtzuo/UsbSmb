@@ -1,44 +1,14 @@
 
-#include <windows.h>
-#include <stdio.h>
+#include "stdafx.h"
 #include "UsbSmb.h"
 
-#ifdef _LOADLIB
-#include "mpusbapi.h"
-#else
-DWORD MPUSBGetDLLVersion(void);
-DWORD MPUSBGetDeviceCount(PCHAR pVID_PID);
-HANDLE MPUSBOpen(DWORD instance,    // Input
-                 PCHAR pVID_PID,    // Input
-                 PCHAR pEP,         // Input
-                 DWORD dwDir,       // Input
-                 DWORD dwReserved); // Input <Future Use>
-DWORD MPUSBRead(HANDLE handle,              // Input
-                PVOID pData,                // Output
-                DWORD dwLen,                // Input
-                PDWORD pLength,             // Output
-                DWORD dwMilliseconds);      // Input
-DWORD MPUSBWrite(HANDLE handle,             // Input
-                 PVOID pData,               // Input
-                 DWORD dwLen,               // Input
-                 PDWORD pLength,            // Output
-                 DWORD dwMilliseconds);     // Input
-BOOL MPUSBClose(HANDLE handle);
+#include "opusbapi.h"
 
-#define MP_WRITE                    0
-#define MP_READ                     1
-#endif
-
-#define picdemfs_demo       "vid_04d8&pid_000c"
-#define bulk_out            "\\MCHP_EP1"
-#define bulk_in             "\\MCHP_EP1"
-
-#define RESET			0xFF
 #define READ_VERSION	0x00
 
-#define WRITE_CMD		0x40		// registered I2C control command
-#define READ_CMD		0x41		// registered I2C control command
-#define READ_CMD2		0x46		// registered I2C control command
+// registered EEPROM control command
+#define	READ_EEDATA		0x04
+#define	WRITE_EEDATA	0x05
 
 #define WRITE_HDQ		0x22		// registered HDQ control command
 #define READ_HDQ		0x23		// registered HDQ control command
@@ -46,18 +16,23 @@ BOOL MPUSBClose(HANDLE handle);
 #define WRITE_EEPROM	0x34		// registered EEPROM control command
 #define READ_EEPROM		0x35		// registered EEPROM control command
 
+#define WRITE_CMD		0x40		// registered I2C control command
+#define READ_CMD		0x41		// registered I2C control command
+#define READ_CMD2		0x46		// registered I2C control command
+
 #define IO_CMD			0xF1		// USB bridge GPIO control command
+#define RESET			0xFF
 
 const BYTE MaxCount = 60;
 
 HANDLE myBulkOut = INVALID_HANDLE_VALUE;
 HANDLE myBulkIn = INVALID_HANDLE_VALUE;
 
-/*
-FTC_STATUS Status = FTC_INVALID_HANDLE;
-char sbuf[100];
-BOOL bPEC = FALSE;
-*/
+//These are the vendor and product IDs to look for.
+//Uses Microchip's Vendor ID.
+int VendorID = 0x04d8;
+int ProductID = 0x003f;
+
 
 unsigned char Crc8( unsigned char inCrc, unsigned char inData );
 
@@ -147,21 +122,16 @@ DWORD ShowLastError(LPCTSTR str)
     LPTSTR lpMsgBuf;
 	char buf[100] = {0};
 
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        Error,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf, 0, NULL );
-    sprintf(buf, "%s\r\nFailed with error %d: %s",str,Error,lpMsgBuf);
-
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL,
+		Error,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&lpMsgBuf, 0, NULL);
+	sprintf(buf, "%s\r\nFailed with error %d: %s", str, Error, lpMsgBuf);
 	LocalFree(lpMsgBuf);
-/*
-	MessageBox(NULL, buf, "Error", MB_OK|MB_SYSTEMMODAL);
-	//while(MessageBox(NULL, buf, "Error", MB_OK|MB_SYSTEMMODAL) != IDOK);
-*/
-//	TRACE("%s\n", buf);
+
 	OutputDebugString(buf);
 
 	return Error;
@@ -186,14 +156,14 @@ DWORD ShowLastError(LPCTSTR str)
 int UsbOpen(int AssignedIndex)
 {
     if (myBulkOut != INVALID_HANDLE_VALUE)
-        MPUSBClose(myBulkOut);
+		OPUSBClose(myBulkOut);
     if (myBulkIn != INVALID_HANDLE_VALUE)
-        MPUSBClose(myBulkIn);
+		OPUSBClose(myBulkIn);
 
-	myBulkOut = MPUSBOpen(AssignedIndex,picdemfs_demo,bulk_out,MP_WRITE,0);
-	myBulkIn = MPUSBOpen(AssignedIndex,picdemfs_demo,bulk_in,MP_READ,0);
+	myBulkOut = OPUSBOpen(AssignedIndex, VendorID, ProductID, NULL, OP_WRITE, 0);
+	myBulkIn = OPUSBOpen(AssignedIndex, VendorID, ProductID, NULL, OP_READ, 0);
 
-    if((myBulkOut == INVALID_HANDLE_VALUE) || (myBulkIn == INVALID_HANDLE_VALUE))
+	if ((myBulkOut == INVALID_HANDLE_VALUE) || (myBulkIn == INVALID_HANDLE_VALUE))
 	{            
 		return 1;
 	}
@@ -218,8 +188,8 @@ int UsbOpen(int AssignedIndex)
  *****************************************************************************/
 int UsbClose()
 {
-    if (myBulkOut != INVALID_HANDLE_VALUE) MPUSBClose(myBulkOut);
-    if (myBulkIn != INVALID_HANDLE_VALUE) MPUSBClose(myBulkIn);
+    if (myBulkOut != INVALID_HANDLE_VALUE) OPUSBClose(myBulkOut);
+    if (myBulkIn != INVALID_HANDLE_VALUE) OPUSBClose(myBulkIn);
     myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
     return 0;
 }
@@ -254,69 +224,68 @@ int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD
     DWORD SentDataLength;
     DWORD ExpectedReceiveLength = *ReceiveLength;
 
-    if(myBulkOut != INVALID_HANDLE_VALUE && myBulkIn != INVALID_HANDLE_VALUE)
-    {
-        if(MPUSBWrite(myBulkOut,SendData,SendLength,&SentDataLength,SendDelay))
-        {
+	if (myBulkOut != INVALID_HANDLE_VALUE && myBulkIn != INVALID_HANDLE_VALUE)
+	{
+		if (OPUSBWrite(myBulkOut, SendData, SendLength, &SentDataLength, SendDelay))
+		{
+			if (OPUSBRead(myBulkIn, ReceiveData, ExpectedReceiveLength, ReceiveLength, ReceiveDelay))
+			{
+				if (*ReceiveLength == ExpectedReceiveLength)
+				{
+					return 1;   // Success!
+				}
+				else if (*ReceiveLength < ExpectedReceiveLength)
+				{
+					return 2;   // Partially failed, incorrect receive length
+				}
+			}
+			else
+			{
+				if (ShowLastError("USB Read Failed.") == ERROR_INVALID_HANDLE)
+				{
+					if (myBulkOut != INVALID_HANDLE_VALUE)
+						OPUSBClose(myBulkOut);
+					if (myBulkIn != INVALID_HANDLE_VALUE)
+						OPUSBClose(myBulkIn);
+					myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
+				}
+			}
+		}
+		else
+		{
+			if (ShowLastError("USB Write Failed.") == ERROR_INVALID_HANDLE)
+			{
+				if (myBulkOut != INVALID_HANDLE_VALUE)
+					OPUSBClose(myBulkOut);
+				if (myBulkIn != INVALID_HANDLE_VALUE)
+					OPUSBClose(myBulkIn);
+				myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
+			}
+		}
+	}
 
-            if(MPUSBRead(myBulkIn,ReceiveData, ExpectedReceiveLength, ReceiveLength,ReceiveDelay))
-            {
-                if(*ReceiveLength == ExpectedReceiveLength)
-                {
-                    return 1;
-                }
-                else if(*ReceiveLength < ExpectedReceiveLength)
-                {
-                    return 2;
-                }
-            }
-            else
-            {
-                if(ShowLastError("USB Read Failed.") == ERROR_INVALID_HANDLE)
-                {
-                    if (myBulkOut != INVALID_HANDLE_VALUE)
-                        MPUSBClose(myBulkOut);
-                    if (myBulkIn != INVALID_HANDLE_VALUE)
-                        MPUSBClose(myBulkIn);
-                    myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
-                }
-            }
-        }
-        else
-        {
-            if(ShowLastError("USB Write Failed.") == ERROR_INVALID_HANDLE)
-            {
-              if (myBulkOut != INVALID_HANDLE_VALUE)
-                MPUSBClose(myBulkOut);
-              if (myBulkIn != INVALID_HANDLE_VALUE)
-                MPUSBClose(myBulkIn);
-              myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
-            }
-        }
-    }
-
-    return 0;
+    return 0;  // Operation Failed
 }
 
 WORD UsbGetVersion(int nDev)
 {
-	BYTE buf[64];
-	DWORD RecvLength = 4;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	WORD wVersion = 0;
 
-	buf[0] = READ_VERSION;
-	buf[1] = 0x02;
+	buf[1] = READ_VERSION;
+	buf[2] = 2;//read length
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 2, buf, &RecvLength, 100, 100))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == 4 && buf[0] == 0x00 && buf[1] == 0x02)
+			if (buf[1] == READ_VERSION && buf[2] == 2)
 			{
 				char szMsg[100];
-				sprintf(szMsg, "USB-SMbus Module Version : %d.%d\n", buf[3], buf[2]);
+				sprintf(szMsg, "USB-SMbus Module Version : %d.%d\n", buf[4], buf[3]);
 				OutputDebugString(szMsg);
-				wVersion = *(PWORD)&buf[2];
+				wVersion = *(PWORD)&buf[3];
 			}
 		}
 	}
@@ -331,24 +300,24 @@ WORD UsbGetVersion(int nDev)
 
 BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 {
-	BYTE buf[64];
-	DWORD RecvLength = 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = WRITE_CMD;	// send module command
-	buf[1] = addr;		// send Address
-	buf[2] = cmd;		// send SMBus command
-	buf[3] = len+bPEC;
-	memcpy(&buf[4], pBuf, len);
+	buf[1] = WRITE_CMD;	// send module command
+	buf[2] = addr;		// send Address
+	buf[3] = cmd;		// send SMBus command
+	buf[4] = len + bPEC;
+	memcpy(&buf[5], pBuf, len);
 
 	if (bPEC)
-		CalcWCrc(buf);
+		CalcWCrc(&buf[1]);
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 4+buf[3], buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == 2 && buf[0] == WRITE_CMD && buf[1] == 1)
+			if (buf[1] == WRITE_CMD && buf[2] == 1)
 			{
 				bSuccess = TRUE;
 			}
@@ -362,24 +331,24 @@ BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf
 BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 {
 	UINT nReadBytes = len + bPEC;
-	BYTE buf[64];
-	DWORD RecvLength = nReadBytes + 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = READ_CMD;	// send module command
-	buf[1] = addr;		// send Address
-	buf[2] = cmd;		// send SMBus command
-	buf[3] = nReadBytes;
+	buf[1] = READ_CMD;	// send module command
+	buf[2] = addr;		// send Address
+	buf[3] = cmd;		// send SMBus command
+	buf[4] = nReadBytes;
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 4, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == nReadBytes + 2 && buf[0] == READ_CMD && buf[1] == nReadBytes)
+			if (buf[1] == READ_CMD && buf[2] == nReadBytes)
 			{
-				if (!bPEC || CheckRCrc(addr, cmd, buf))
+				if (!bPEC || CheckRCrc(addr, cmd, &buf[1]))
 				{
-					memcpy(pBuf, &buf[2], len);
+					memcpy(pBuf, &buf[3], len);
 
 					bSuccess = TRUE;
 				}
@@ -393,19 +362,19 @@ BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 
 BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue)
 {
-	BYTE buf[64];
-	DWORD RecvLength = 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength =  sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = WRITE_HDQ;	// send module command
-	buf[1] = byCommand;	// send SMBus command
-	buf[2] = byValue;
+	buf[1] = WRITE_HDQ;	// send module command
+	buf[2] = byCommand;	// send SMBus command
+	buf[3] = byValue;
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 3, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == 2 && buf[0] == WRITE_HDQ && buf[1] == 1)
+			if (buf[1] == WRITE_HDQ && buf[2] == 1)
 			{
 				bSuccess = TRUE;
 			}
@@ -418,20 +387,20 @@ BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue)
 
 BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue)
 {
-	BYTE buf[64];
-	DWORD RecvLength = 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = READ_HDQ;	// send module command
-	buf[1] = byCommand;	// send SMBus command
+	buf[1] = READ_HDQ;	// send module command
+	buf[2] = byCommand;	// send SMBus command
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 2, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == 2 && buf[0] == READ_HDQ)
+			if (buf[1] == READ_HDQ)
 			{
-				*pValue = buf[1];
+				*pValue = buf[2];
 
 				bSuccess = TRUE;
 			}
@@ -441,7 +410,7 @@ BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue)
 
 	return bSuccess;
 }
-
+/*
 BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf)
 {
 	BYTE buf[35];
@@ -495,22 +464,22 @@ BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf)
 
 	return bSuccess;
 }
-
+*/
 BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand)
 {
-	BYTE buf[64];
-	DWORD RecvLength = 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = IO_CMD;	// send module command
-	buf[1] = 1;			// send length
-	buf[2] = byCommand;	// send IO command
+	buf[1] = IO_CMD;	// send module command
+	buf[2] = 1;			// send length
+	buf[3] = byCommand;	// send IO command
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 3, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
 		{
-			if (RecvLength == 2 && buf[0] == IO_CMD && buf[1] == 1)
+			if (buf[1] == IO_CMD && buf[2] == 1)
 			{
 				bSuccess = TRUE;
 			}
@@ -521,92 +490,78 @@ BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand)
 	return bSuccess;
 }
 
-#ifdef _LOADLIB
-UINT MPUSBInit(HMODULE hLib)
+void UsbHidReset()
 {
-	MPUSBGetDLLVersion = (DWORD(*)(void))GetProcAddress(hLib, "_MPUSBGetDLLVersion");
-	MPUSBGetDeviceCount = (DWORD(*)(PCHAR))GetProcAddress(hLib, "_MPUSBGetDeviceCount");
-	MPUSBOpen = (HANDLE(*)(DWORD, PCHAR, PCHAR, DWORD, DWORD))GetProcAddress(hLib, "_MPUSBOpen");
-	MPUSBRead = (DWORD(*)(HANDLE, PVOID, DWORD, PDWORD, DWORD))GetProcAddress(hLib, "_MPUSBRead");
-	MPUSBWrite = (DWORD(*)(HANDLE, PVOID, DWORD, PDWORD, DWORD))GetProcAddress(hLib, "_MPUSBWrite");
-//	MPUSBReadInt = (DWORD(*)(HANDLE, PVOID, DWORD, PDWORD, DWORD))GetProcAddress(hLib, "_MPUSBReadInt");
-	MPUSBClose = (BOOL(*)(HANDLE handle))GetProcAddress(hLib, "_MPUSBClose");
-
-	if ((MPUSBGetDLLVersion == NULL) || (MPUSBGetDeviceCount == NULL) || (MPUSBOpen == NULL) ||
-//		(MPUSBRead == NULL) ||	(MPUSBWrite == NULL) || (MPUSBReadInt == NULL) ||	(MPUSBClose == NULL))
-		(MPUSBRead == NULL) ||	(MPUSBWrite == NULL) || (MPUSBClose == NULL))
+	if (UsbOpen(0) == NO_ERROR)
 	{
-		MessageBox(NULL, "GetProcAddress Error for MPUSBAPI.dll", "UsbSmb", MB_ICONERROR);
-		return 0;
+		BYTE buf[65] = { 0, RESET, 0 };
+		DWORD RecvLength = sizeof(buf);
+		SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1);
 	}
-	else
-	{
-		DWORD dwVersion = MPUSBGetDLLVersion();
-
-		char szMsg[100];
-		sprintf(szMsg, "Microchip USB API DLL Version : %x.%x.%x.%x\n", HIBYTE(HIWORD(dwVersion)), LOBYTE(HIWORD(dwVersion)), HIBYTE(LOWORD(dwVersion)), LOBYTE(LOWORD(dwVersion)));
-		OutputDebugString(szMsg);
-
-		return MPUSBGetDeviceCount(picdemfs_demo);
-	}
+	UsbClose();
 }
 
 UINT UsbInit()
 {
-	HINSTANCE hLib = LoadLibrary("mpusbapi");
-
-	if (!hLib)
-	{
-		DWORD dw = GetLastError();
-		OutputDebugString("Error loading MPUSBAPI.dll\n");
-
-		return FALSE;
-	}
-
-	return MPUSBInit(hLib);
-}
-#else
-UINT UsbInit()
-{
-	DWORD dwVersion = MPUSBGetDLLVersion();
+	DWORD dwVersion = OPUSBGetDLLVersion();
 
 	char szMsg[100];
-	sprintf(szMsg, "Microchip USB API DLL Version : %x.%x.%x.%x\n",
+	sprintf(szMsg, "Optigate USB HID API DLL Version : %x.%x.%x.%x\n",
 		HIBYTE(HIWORD(dwVersion)), LOBYTE(HIWORD(dwVersion)), HIBYTE(LOWORD(dwVersion)), LOBYTE(LOWORD(dwVersion)));
 	OutputDebugString(szMsg);
 
-	return MPUSBGetDeviceCount(picdemfs_demo);
+	return OPUSBGetDevicePath(VendorID, ProductID);
 }
-#endif
 
-/****************************************************************************
-   FUNCTION: DllMain(HANDLE, DWORD, LPVOID)
-
-   PURPOSE:  DllMain is called by Windows when
-             the DLL is initialized, Thread Attached, and other times.
-             
-             The DllMain function should perform additional initialization
-             tasks required by the DLL. DllMain should return a value of 1 if
-             the initialization is successful.
-           
-*******************************************************************************/
-BOOL APIENTRY DllMain(HANDLE hInst, DWORD ul_reason_being_called, LPVOID lpReserved)
+USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 {
-    switch (ul_reason_being_called)
-	{
-		case DLL_PROCESS_ATTACH:
-			myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
-			break;
-		case DLL_THREAD_ATTACH:
-			break;
-		case DLL_THREAD_DETACH:
-			break;
-		case DLL_PROCESS_DETACH:
-			if (myBulkOut != INVALID_HANDLE_VALUE) MPUSBClose(myBulkOut);
-			if (myBulkIn != INVALID_HANDLE_VALUE) MPUSBClose(myBulkIn);
-			myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
-			break;
-    }
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
+	BOOL bSuccess = FALSE;
 
-    return TRUE;
+	buf[1] = WRITE_EEDATA;	// send module command
+	buf[2] = 2;				// send length
+	buf[3] = loc;			// send addr
+	buf[4] = val;
+
+	if (UsbOpen(nDev) == NO_ERROR)
+	{
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 5) == 1)
+		{
+			if (buf[1] == WRITE_EEDATA && buf[2] == 2)
+			{
+				bSuccess = TRUE;
+			}
+		}
+	}
+	UsbClose();
+
+	return bSuccess;
+}
+
+USBSMB_API BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pVal)
+{
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
+	BOOL bSuccess = FALSE;
+
+	buf[1] = READ_EEDATA;	// send module command
+	buf[2] = 1;				// send length
+	buf[3] = loc;			// send addr
+
+	if (UsbOpen(nDev) == NO_ERROR)
+	{
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
+		{
+			if (buf[1] == READ_EEDATA && buf[2] == 2)
+			{
+				*pVal = buf[4];
+
+				bSuccess = TRUE;
+			}
+		}
+	}
+	UsbClose();
+
+	return bSuccess;
 }

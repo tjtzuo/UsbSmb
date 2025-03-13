@@ -63,8 +63,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,1,2
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 3,0,0,1
+ PRODUCTVERSION 3,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -81,12 +81,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Optigate"
             VALUE "FileDescription", "UsbSmb DLL"
-            VALUE "FileVersion", "2.0.1.2"
+            VALUE "FileVersion", "3.0.0.1"
             VALUE "InternalName", "UsbSmb"
-            VALUE "LegalCopyright", "Copyright (C) 2019"
+            VALUE "LegalCopyright", "Copyright (C) 2025"
             VALUE "OriginalFilename", "UsbSmb.DLL"
             VALUE "ProductName", "UsbSmb Dynamic Link Library"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "3.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
