@@ -22,6 +22,9 @@
 // then 127 USB devices attached to it. (single or multiple USB hosts)
 #define MAX_NUM_MPUSB_DEV           127
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //	MPUSBGetDLLVersion : get mpusbapi.dll revision level
@@ -41,7 +44,7 @@
 //                numbering format.  The format of this fuction was changed to
 //                match how the .DLL file number generation works.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetDLLVersion(void);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,7 +54,7 @@ DWORD MPUSBGetDLLVersion(void);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetDeviceCount(PCHAR pVID_PID);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -140,7 +143,7 @@ DWORD MPUSBGetDeviceCount(PCHAR pVID_PID);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 HANDLE MPUSBOpen(DWORD instance,    // Input
                  PCHAR pVID_PID,    // Input
                  PCHAR pEP,         // Input
@@ -171,7 +174,7 @@ HANDLE MPUSBOpen(DWORD instance,    // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBRead(HANDLE handle,              // Input
                 PVOID pData,                // Output
                 DWORD dwLen,                // Input
@@ -203,7 +206,7 @@ DWORD MPUSBRead(HANDLE handle,              // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBWrite(HANDLE handle,             // Input
                  PVOID pData,               // Input
                  DWORD dwLen,               // Input
@@ -234,7 +237,7 @@ DWORD MPUSBWrite(HANDLE handle,             // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBReadInt(HANDLE handle,           // Input
                    PVOID pData,             // Output
                    DWORD dwLen,             // Input
@@ -248,7 +251,7 @@ DWORD MPUSBReadInt(HANDLE handle,           // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 BOOL MPUSBClose(HANDLE handle);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -266,7 +269,7 @@ BOOL MPUSBClose(HANDLE handle);
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetDeviceDescriptor(HANDLE handle,       // Input
                                PVOID pDevDsc,       // Output
                                DWORD dwLen,         // Input
@@ -289,7 +292,7 @@ DWORD MPUSBGetDeviceDescriptor(HANDLE handle,       // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //      
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetConfigurationDescriptor(HANDLE handle,       // Input
                                UCHAR bIndex,        // Input
                                PVOID pDevDsc,       // Output
@@ -314,7 +317,7 @@ DWORD MPUSBGetConfigurationDescriptor(HANDLE handle,       // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetStringDescriptor(HANDLE handle,       // Input
                                UCHAR bIndex,        // Input
                                USHORT wLangId,      // Input
@@ -338,7 +341,7 @@ DWORD MPUSBGetStringDescriptor(HANDLE handle,       // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBSetConfiguration(HANDLE handle,         // Input
 							USHORT bConfigSetting);// Input
 
@@ -350,10 +353,15 @@ DWORD MPUSBSetConfiguration(HANDLE handle,         // Input
 //	to this function, which are the opposite of common sense from the
 //	perspective of an application making the calls.
 //
-extern "C" __declspec(dllexport)
+__declspec(dllexport)
 DWORD MPUSBGetDeviceLink(DWORD instance,    // Input
                          PCHAR pVID_PID,    // Input
                          PCHAR pPath,       // Output
                          DWORD dwLen,       // Input
                          PDWORD pLength);	// Output
+
+#ifdef  __cplusplus
+}
+#endif
+
 #endif
