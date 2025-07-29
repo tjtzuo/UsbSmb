@@ -19,7 +19,7 @@
  *
  * revision				Date		Comment
  *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * v0.1.0.0							Original version 01.00
+ * v1.0.0.1							Original version 1.00
  ********************************************************************/
 
 #include <stdio.h>
@@ -37,7 +37,8 @@
 #define DisplayData(x)
 #endif
 
-#define OPUSBAPI_VERSION			0x00010001L  //revision 0.1.0.1
+//#define OPUSBAPI_VERSION			0x01000001L  //revision 1.0.0.1
+#define OPUSBAPI_VERSION			0x01030101L  //revision 1.3.1.1
 
 #define	OPUSB_DEV_NO_INFO			2
 #define	OPUSB_DEV_INVALID_INST		3
@@ -79,11 +80,12 @@ void DisplayLastError(PCTSTR Operation)
 #endif
 }
 
+HIDP_CAPS	Capabilities;
+
 void GetDeviceCapabilities(HANDLE DeviceHandle)
 {
 	//Get the Capabilities structure for the device.
 
-	HIDP_CAPS				Capabilities;
 	PHIDP_PREPARSED_DATA	PreparsedData;
 
 	/*
@@ -221,34 +223,32 @@ DWORD OPUSBIsVidPidEqual(PCHAR pDevicePath, int nVID, int nPID)
 	DisplayLastError("HidD_GetAttributes: ");
 			
 	//Is it the desired device?
-
 	if (Attributes.VendorID == nVID)
 	{
 		if (Attributes.ProductID == nPID)
 		{
 			//Both the Vendor ID and Product ID match.
-
-			dwResult = OPUSB_SUCCESS;
-
 			DisplayData("Device detected");
 /*
 			//Register to receive device notifications.
-
 			RegisterForDeviceNotifications();
 */
 			//Get the device's capablities.
 
 			GetDeviceCapabilities(DeviceHandle);
-/*
+
 			// Find out if the device is a system mouse or keyboard.
-					
-			DeviceUsage = (Capabilities.UsagePage * 256) + Capabilities.Usage;
+
+			USHORT DeviceUsage = (Capabilities.UsagePage * 256) + Capabilities.Usage;
 
 			if (DeviceUsage == 0x102)
 			{
-				UsageDescription = "mouse";
+				//UsageDescription = "mouse";
+				DisplayData("The device is a system mouse.");
 			}
-				
+			else
+				dwResult = OPUSB_SUCCESS;
+/*
 			if (DeviceUsage == 0x106)
 			{
 				UsageDescription = "keyboard";
@@ -478,36 +478,21 @@ DWORD OPUSBGetDevicePath(int nVID, int nPID)
 //			   Use OP_READ for OPUSBRead
 //			   Use OP_WRITE for OPUSBWrite
 //
-//	dwReserved Future Use
-//
 HANDLE OPUSBOpen(DWORD instance,	// Input
 				 int nVID, int nPID,// Input
-				 PCHAR pEP,			// Input
-				 DWORD dwDir,		// Input
-				 DWORD dwReserved)	// Input <Future Use>
+				 DWORD dwDir)		// Input
 {
 	HANDLE handle = INVALID_HANDLE_VALUE;
 
 	// Check arguments first
 	if ((nVID > 0 && nPID > 0) && ((dwDir == OP_WRITE) || (dwDir == OP_READ)))
 	{
-		char path[MAX_PATH];
-		DWORD dwReqLen = 0;
-		if (MyDeviceDetected || OPUSBGetDeviceLink(nVID, nPID, path, MAX_PATH, &dwReqLen) == OPUSB_SUCCESS)
+		if (MyDeviceDetected || OPUSBGetDevicePath(nVID, nPID) == OPUSB_SUCCESS)
 		{
-			char path_io[MAX_PATH];
-
-			if (dwReqLen)
-				strcpy(path_io, path);
-			else
-				strcpy(path_io, MyDevicePathName);
-
-			if (pEP != NULL) strcat(path_io, pEP);
-
 			if (dwDir == OP_READ)
 			{
 				//Get a handle to the device for the overlapped ReadFiles.
-				handle = CreateFile(path_io,
+				handle = CreateFile(MyDevicePathName,
 									GENERIC_READ,
 									FILE_SHARE_READ | FILE_SHARE_WRITE,
 									NULL,
@@ -548,7 +533,7 @@ HANDLE OPUSBOpen(DWORD instance,	// Input
 			else
 			{
 				// Get a handle for writing Output reports.
-				handle = CreateFile(path_io,
+				handle = CreateFile(MyDevicePathName,
 									GENERIC_WRITE,
 									FILE_SHARE_READ|FILE_SHARE_WRITE,
 									NULL,
@@ -749,23 +734,23 @@ DWORD OPUSBWrite(HANDLE handle,			// Input
 {
 	BOOL bResult;
 	DWORD nBytesWritten;
-//	OVERLAPPED gOverlapped;
+	OVERLAPPED gOverlapped;
 	DWORD dwResult;
 
 	dwResult = OPUSB_FAIL;
-/*
+
 	// set up overlapped structure fields
 	gOverlapped.Internal	 = 0;
 	gOverlapped.InternalHigh = 0;
 	gOverlapped.Offset		 = 0;
 	gOverlapped.OffsetHigh	 = 0;
 	gOverlapped.hEvent		 = CreateEvent(NULL, FALSE, FALSE, NULL);
-*/
+
 	if(pLength != NULL)*pLength = 0;
-/*
+
 	// attempt an asynchronous read operation
-	bResult = WriteFile(handle,pData,dwLen,&nBytesWritten,&gOverlapped);
-*/
+	bResult = WriteFile(handle, pData, dwLen, &nBytesWritten, &gOverlapped);
+
 	/*
 	API Function: WriteFile
 	Sends a report to the device.
@@ -776,9 +761,9 @@ DWORD OPUSBWrite(HANDLE handle,			// Input
 	The Output Report length returned by HidP_GetCaps,
 	A variable to hold the number of bytes written.
 	*/
-
+/*
 	bResult = WriteFile(handle, pData, dwLen, &nBytesWritten, NULL);
-
+*/
 	//Display the result of the API call and the report bytes.
 
 	DisplayLastError("WriteFile: ");
@@ -788,7 +773,7 @@ DWORD OPUSBWrite(HANDLE handle,			// Input
 		// deal with the error code
 		switch (GetLastError())
 		{
-/*
+
 		case ERROR_HANDLE_EOF:
 		{
 			// we have reached the end of the file
@@ -825,7 +810,7 @@ DWORD OPUSBWrite(HANDLE handle,			// Input
 			}//end switch
 			break;
 		}//end case
-*/
+
 		default:
 			CancelIo(handle);
 			break;
@@ -842,10 +827,10 @@ DWORD OPUSBWrite(HANDLE handle,			// Input
 			*pLength = nBytesWritten;
 		dwResult = OPUSB_SUCCESS;
 	}//end if else
-/*
+
 	ResetEvent(gOverlapped.hEvent);
 	CloseHandle(gOverlapped.hEvent);
-*/
+
 	return dwResult;
 
 }//end OPUSBWrite

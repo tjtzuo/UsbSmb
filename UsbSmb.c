@@ -160,8 +160,8 @@ int UsbOpen(int AssignedIndex)
     if (myBulkIn != INVALID_HANDLE_VALUE)
 		OPUSBClose(myBulkIn);
 
-	myBulkOut = OPUSBOpen(AssignedIndex, VendorID, ProductID, NULL, OP_WRITE, 0);
-	myBulkIn = OPUSBOpen(AssignedIndex, VendorID, ProductID, NULL, OP_READ, 0);
+	myBulkOut = OPUSBOpen(AssignedIndex, VendorID, ProductID, OP_WRITE);
+	myBulkIn = OPUSBOpen(AssignedIndex, VendorID, ProductID, OP_READ);
 
 	if ((myBulkOut == INVALID_HANDLE_VALUE) || (myBulkIn == INVALID_HANDLE_VALUE))
 	{            

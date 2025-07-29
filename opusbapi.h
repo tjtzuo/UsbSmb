@@ -64,11 +64,9 @@ DWORD OPUSBGetDevicePath(int nVID, int nPID);
 //  dwReserved Future Use
 //
 __declspec(dllexport)
-HANDLE OPUSBOpen(DWORD instance,    // Input
+HANDLE OPUSBOpen(DWORD instance,	// Input
 				 int nVID, int nPID,// Input
-                 PCHAR pEP,         // Input
-                 DWORD dwDir,       // Input
-                 DWORD dwReserved); // Input <Future Use>
+				 DWORD dwDir);		// Input
 
 ///////////////////////////////////////////////////////////////////////////////
 //	OPUSBRead :
