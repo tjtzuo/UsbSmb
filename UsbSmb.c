@@ -1,8 +1,7 @@
-
 #include "stdafx.h"
 #include "UsbSmb.h"
-
 #include "opusbapi.h"
+#include <assert.h>
 
 #define READ_VERSION	0x00
 
@@ -24,15 +23,19 @@
 #define RESET			0xFF
 
 const BYTE MaxCount = 60;
-
+/*
 HANDLE myBulkOut = INVALID_HANDLE_VALUE;
 HANDLE myBulkIn = INVALID_HANDLE_VALUE;
+*/
+hid_device *handle = NULL;
 
 //These are the vendor and product IDs to look for.
 //Uses Microchip's Vendor ID.
 int VendorID = 0x04d8;
 int ProductID = 0x003f;
 
+extern BOOL	MyDeviceDetected;
+extern char	MyDevicePathName[];
 
 unsigned char Crc8( unsigned char inCrc, unsigned char inData );
 
@@ -155,6 +158,7 @@ DWORD ShowLastError(LPCTSTR str)
  *****************************************************************************/
 int UsbOpen(int AssignedIndex)
 {
+/*
     if (myBulkOut != INVALID_HANDLE_VALUE)
 		OPUSBClose(myBulkOut);
     if (myBulkIn != INVALID_HANDLE_VALUE)
@@ -167,6 +171,20 @@ int UsbOpen(int AssignedIndex)
 	{            
 		return 1;
 	}
+*/
+	if (MyDeviceDetected)
+		handle = hid_open_path(MyDevicePathName);
+	else
+		// Open the device using the VID, PID,
+		// and optionally the interface number.
+		handle = hid_open(VendorID, ProductID, 0);
+
+	if (!handle) {
+		OutputDebugString("unable to open device\n");
+		hid_exit();
+ 		return 1;
+	}
+
 	return 0;
 }
 
@@ -188,15 +206,20 @@ int UsbOpen(int AssignedIndex)
  *****************************************************************************/
 int UsbClose()
 {
+/*
     if (myBulkOut != INVALID_HANDLE_VALUE) OPUSBClose(myBulkOut);
     if (myBulkIn != INVALID_HANDLE_VALUE) OPUSBClose(myBulkIn);
     myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
+*/
+	hid_close(handle);
+	handle = NULL;
+
     return 0;
 }
 
 /******************************************************************************
  * Function:        int USB::SendReceivePacket(BYTE *SendData, DWORD SendLength,
- *                   BYTE *ReceiveData, DWORD *ReceiveLength,UINT SendDelay,
+ *                   BYTE *ReceiveData, DWORD *ReceiveLength, UINT SendDelay,
  *                   UINT ReceiveDelay)
  *
  * PreCondition:    Open the USB device using COMPort::Open.
@@ -221,11 +244,11 @@ int UsbClose()
  *****************************************************************************/
 int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD *ReceiveLength, UINT SendDelay, UINT ReceiveDelay)
 {
-    DWORD SentDataLength;
     DWORD ExpectedReceiveLength = *ReceiveLength;
-
+/*
 	if (myBulkOut != INVALID_HANDLE_VALUE && myBulkIn != INVALID_HANDLE_VALUE)
 	{
+		DWORD SentDataLength;
 		if (OPUSBWrite(myBulkOut, SendData, SendLength, &SentDataLength, SendDelay))
 		{
 			if (OPUSBRead(myBulkIn, ReceiveData, ExpectedReceiveLength, ReceiveLength, ReceiveDelay))
@@ -260,6 +283,67 @@ int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD
 				if (myBulkIn != INVALID_HANDLE_VALUE)
 					OPUSBClose(myBulkIn);
 				myBulkOut = myBulkIn = INVALID_HANDLE_VALUE;
+			}
+		}
+	}
+*/
+	if (handle)
+	{
+		int res = hid_write(handle, SendData, SendLength);
+		if (res < 0) {
+			OutputDebugString("Unable to write(): ");
+			OutputDebugStringW(hid_error(handle));
+			OutputDebugString("\n");
+		}
+		else
+		{
+			// Read requested state. hid_read() has been set to be
+			// non-blocking by the call to hid_set_nonblocking() above.
+			// This loop demonstrates the non-blocking nature of hid_read().
+			res = 0;
+			int i = 0;
+			while (res == 0) {
+				res = hid_read(handle, ReceiveData, ExpectedReceiveLength);
+				if (res == 0) {
+					OutputDebugString("waiting...\n");
+				}
+				if (res < 0) {
+					OutputDebugString("Unable to read(): ");
+					OutputDebugStringW(hid_error(handle));
+					OutputDebugString("\n");
+					break;
+				}
+
+				i++;
+				if (i >= 10) { /* 10 tries by 500 ms - 5 seconds of waiting*/
+					OutputDebugString("read() timeout\n");
+					break;
+				}
+
+				Sleep(500);
+			}
+
+			if (res > 0) {
+				assert(i < 10);
+/*
+				OutputDebugString("Data read:\n   ");
+				// Print out the returned buffer.
+				for (i = 0; i < res; i++)
+				{
+					char buf[4];
+					sprintf(buf, "%02x ", ReceiveData[i]);
+					OutputDebugString(buf);
+				}
+				OutputDebugString("\n");
+*/
+				if (res == ExpectedReceiveLength)
+				{
+					return 1;   // Success!
+				}
+				else if ((unsigned)res < ExpectedReceiveLength)
+				{
+					return 2;   // Partially failed, incorrect receive length
+				}
 			}
 		}
 	}
@@ -510,10 +594,13 @@ UINT UsbInit()
 		HIBYTE(HIWORD(dwVersion)), LOBYTE(HIWORD(dwVersion)), HIBYTE(LOWORD(dwVersion)), LOBYTE(LOWORD(dwVersion)));
 	OutputDebugString(szMsg);
 
+	if (hid_init() != 0)
+		return -1;
+
 	return OPUSBGetDevicePath(VendorID, ProductID);
 }
 
-USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
+BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 {
 	BYTE buf[65] = { 0 };
 	DWORD RecvLength = sizeof(buf);
@@ -539,7 +626,7 @@ USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 	return bSuccess;
 }
 
-USBSMB_API BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pVal)
+BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pVal)
 {
 	BYTE buf[65] = { 0 };
 	DWORD RecvLength = sizeof(buf);

@@ -23,8 +23,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_ATTACH:
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
-	case DLL_PROCESS_DETACH:
 		break;
+	case DLL_PROCESS_DETACH:
+		/* Free static HIDAPI objects. */
+		hid_exit();
 	}
 
 	return TRUE;

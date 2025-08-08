@@ -153,6 +153,7 @@
     <ClInclude Include="UsbSmb.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\hidapi\hid.c" />
     <ClCompile Include="CRC.C" />
     <ClCompile Include="dllmain.c">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>

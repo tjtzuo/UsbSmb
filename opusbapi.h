@@ -63,7 +63,7 @@ DWORD OPUSBGetDevicePath(int nVID, int nPID);
 //
 //  dwReserved Future Use
 //
-__declspec(dllexport)
+//__declspec(dllexport)
 HANDLE OPUSBOpen(DWORD instance,	// Input
 				 int nVID, int nPID,// Input
 				 DWORD dwDir);		// Input
@@ -88,7 +88,7 @@ HANDLE OPUSBOpen(DWORD instance,	// Input
 //            data pipe and returns immediately. If dwMilliseconds is INFINITE,
 //            the function's time-out interval never elapses.
 //
-__declspec(dllexport)
+//__declspec(dllexport)
 DWORD OPUSBRead(HANDLE handle,              // Input
                 PVOID pData,                // Output
                 DWORD dwLen,                // Input
@@ -116,7 +116,7 @@ DWORD OPUSBRead(HANDLE handle,              // Input
 //            data pipe and returns immediately. If dwMilliseconds is INFINITE,
 //            the function's time-out interval never elapses.
 //
-__declspec(dllexport)
+//__declspec(dllexport)
 DWORD OPUSBWrite(HANDLE handle,             // Input
                  PVOID pData,               // Input
                  DWORD dwLen,               // Input
@@ -126,14 +126,14 @@ DWORD OPUSBWrite(HANDLE handle,             // Input
 ///////////////////////////////////////////////////////////////////////////////
 //	OPUSBClose : closes a given handle.
 //
-__declspec(dllexport)
+//__declspec(dllexport)
 BOOL OPUSBClose(HANDLE handle);
 
 ///////////////////////////////////////////////////////////////////////////////
 //	OPUSBGetDeviceLink : Returns the path to device hardware with a given
 //  instance number.
 //
-__declspec(dllexport)
+//__declspec(dllexport)
 DWORD OPUSBGetDeviceLink(int nVID, int nPID,// Input
                          PCHAR pPath,       // Output
                          DWORD dwLen,       // Input

@@ -38,7 +38,8 @@
 #endif
 
 //#define OPUSBAPI_VERSION			0x01000001L  //revision 1.0.0.1
-#define OPUSBAPI_VERSION			0x01030101L  //revision 1.3.1.1
+//#define OPUSBAPI_VERSION			0x01030101L  //revision 1.3.1.1
+#define OPUSBAPI_VERSION			0x01040001L  //revision 1.4.0.1
 
 #define	OPUSB_DEV_NO_INFO			2
 #define	OPUSB_DEV_INVALID_INST		3

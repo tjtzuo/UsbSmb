@@ -44,6 +44,9 @@
     <ClCompile Include="opusbapi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\hidapi\hid.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UsbSmb.rc">
