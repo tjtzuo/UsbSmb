@@ -283,7 +283,7 @@ WORD UsbGetVersion(int nDev)
 			if (buf[1] == READ_VERSION && buf[2] == 2)
 			{
 				char szMsg[100];
-				sprintf(szMsg, "USB-SMbus Module Version : %d.%d\n", buf[4], buf[3]);
+				sprintf(szMsg, "HID-SMbus Module Version : %d.%d\n", buf[4], buf[3]);
 				OutputDebugString(szMsg);
 				wVersion = *(PWORD)&buf[3];
 			}
@@ -315,7 +315,7 @@ BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 100, 100) == 1)
 		{
 			if (buf[1] == WRITE_CMD && buf[2] == 1)
 			{
@@ -342,7 +342,7 @@ BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 100, 100) == 1)
 		{
 			if (buf[1] == READ_CMD && buf[2] == nReadBytes)
 			{
@@ -496,7 +496,7 @@ void UsbHidReset()
 	{
 		BYTE buf[65] = { 0, RESET, 0 };
 		DWORD RecvLength = sizeof(buf);
-		SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1);
+		SendReceivePacket(buf, RecvLength, buf, &RecvLength, 10, 10);
 	}
 	UsbClose();
 }
@@ -526,7 +526,7 @@ USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 5) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 10, 5) == 1)
 		{
 			if (buf[1] == WRITE_EEDATA && buf[2] == 2)
 			{
@@ -551,7 +551,7 @@ USBSMB_API BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pVal)
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 0, 1) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 10, 10) == 1)
 		{
 			if (buf[1] == READ_EEDATA && buf[2] == 2)
 			{
