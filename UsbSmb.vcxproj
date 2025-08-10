@@ -146,6 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\hidapi\hidapi.h" />
+    <ClInclude Include="..\hidapi\hidapi_cfgmgr32.h" />
+    <ClInclude Include="..\hidapi\hidapi_descriptor_reconstruct.h" />
+    <ClInclude Include="..\hidapi\hidapi_hidclass.h" />
+    <ClInclude Include="..\hidapi\hidapi_hidpi.h" />
+    <ClInclude Include="..\hidapi\hidapi_hidsdi.h" />
+    <ClInclude Include="..\hidapi\hidapi_winapi.h" />
     <ClInclude Include="opusbapi.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -154,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\hidapi\hid.c" />
+    <ClCompile Include="..\hidapi\hidapi_descriptor_reconstruct.c" />
     <ClCompile Include="CRC.C" />
     <ClCompile Include="dllmain.c">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
