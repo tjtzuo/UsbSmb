@@ -486,22 +486,22 @@ HANDLE OPUSBOpen(DWORD instance,	// Input
 	HANDLE handle = INVALID_HANDLE_VALUE;
 
 	// Check arguments first
-	if ((nVID > 0 && nPID > 0) && ((dwDir == OP_WRITE) || (dwDir == OP_READ)))
+	if ((nVID > 0 && nPID > 0)/* && ((dwDir == OP_WRITE) || (dwDir == OP_READ))*/)
 	{
 		if (MyDeviceDetected || OPUSBGetDevicePath(nVID, nPID) == OPUSB_SUCCESS)
 		{
-			if (dwDir == OP_READ)
+			//if (dwDir == OP_READ)
 			{
 				//Get a handle to the device for the overlapped ReadFiles.
 				handle = CreateFile(MyDevicePathName,
-									GENERIC_READ,
+									GENERIC_READ | GENERIC_WRITE,
 									FILE_SHARE_READ | FILE_SHARE_WRITE,
 									NULL,
 									OPEN_EXISTING,
 									FILE_FLAG_OVERLAPPED,
 									NULL);
 
-				DisplayLastError("CreateFile (ReadHandle): ");
+				DisplayLastError("CreateFile (ReadWriteHandle): ");
 
 				//Get an event object for the overlapped structure.
 
@@ -531,6 +531,7 @@ HANDLE OPUSBOpen(DWORD instance,	// Input
 				}
 */
 			}
+/*
 			else
 			{
 				// Get a handle for writing Output reports.
@@ -544,6 +545,7 @@ HANDLE OPUSBOpen(DWORD instance,	// Input
 
 				DisplayLastError("CreateFile (WriteHandle): ");
 			}//end if
+*/
 		}//end if
 	}//end if
 
@@ -844,8 +846,9 @@ BOOL OPUSBClose(HANDLE handle)
 	BOOL toReturn;
 	toReturn = TRUE;
 
-	if(handle != INVALID_HANDLE_VALUE)
+	if (handle != INVALID_HANDLE_VALUE)
 		toReturn = CloseHandle(handle);
+
 	return toReturn;
 }//end OPUSBClose
 

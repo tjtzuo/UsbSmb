@@ -33,22 +33,22 @@
     <ClInclude Include="..\hidapi\hidapi_winapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\hidapi\hidapi_hidsdi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hidapi\hidapi_hidpi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hidapi\hidapi_hidclass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\hidapi\hidapi_descriptor_reconstruct.h">
+    <ClInclude Include="..\hidapi\hidapi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\hidapi\hidapi_cfgmgr32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\hidapi\hidapi.h">
+    <ClInclude Include="..\hidapi\hidapi_descriptor_reconstruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hidapi\hidapi_hidclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hidapi\hidapi_hidpi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\hidapi\hidapi_hidsdi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -66,9 +66,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\hidapi\hid.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hidapi\hidapi_descriptor_reconstruct.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
