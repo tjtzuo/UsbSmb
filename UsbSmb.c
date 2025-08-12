@@ -175,7 +175,7 @@ int UsbOpen(int AssignedIndex)
 
 	if (!handle) {
 		OutputDebugString("unable to open device\n");
-		hid_exit();
+		//hid_exit();
  		return 1;
 	}
 #else
@@ -253,51 +253,59 @@ int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD
 #ifdef HID_API_CALL
 	if (handle)
 	{
+		//hid_winapi_set_write_timeout(handle, max(SendDelay, 10));
 		int res = hid_write(handle, SendData, SendLength);
-		if (res < 0) {
+		if (res < 0)
+		{
 			OutputDebugString("Unable to write(): ");
 			OutputDebugStringW(hid_error(handle));
 			OutputDebugString("\n");
 		}
 		else
 		{
+			// Set the hid_read() function to be non-blocking.
+			//hid_set_nonblocking(handle, 1);
+
 			// Read requested state. hid_read() has been set to be
 			// non-blocking by the call to hid_set_nonblocking() above.
 			// This loop demonstrates the non-blocking nature of hid_read().
 			res = 0;
-			int i = 0;
-			while (res == 0) {
+			for (int i = 0; res == 0; i++)
+			{
 				res = hid_read(handle, ReceiveData, ExpectedReceiveLength);
-				if (res == 0) {
+				if (res == 0)
+				{
+					if (i >= 10)
+					{
+						/* 10 tries by ReceiveDelay ms - ? seconds of waiting */
+						OutputDebugString("read() timeout\n");
+						break;
+					}
+
 					OutputDebugString("waiting...\n");
-					Sleep(500);
+					Sleep(ReceiveDelay);
 				}
-				else if (res < 0) {
+				else if (res < 0)
+				{
 					OutputDebugString("Unable to read(): ");
-					OutputDebugStringW(hid_error(handle));
+					OutputDebugStringW(hid_read_error(handle));
 					OutputDebugString("\n");
-					break;
-				}
-				i++;
-				if (i >= 10) { /* 10 tries by 500 ms - 5 seconds of waiting*/
-					OutputDebugString("read() timeout\n");
-					break;
 				}
 			}
 
-			if (res > 0) {
-				assert(i < 10);
-				/*
+			if (res > 0)
+			{
+/*
 				OutputDebugString("Data read:\n   ");
 				// Print out the returned buffer.
-				for (i = 0; i < res; i++)
+				for (int i = 0; i < res; i++)
 				{
-				char buf[4];
-				sprintf(buf, "%02x ", ReceiveData[i]);
-				OutputDebugString(buf);
+					char buf[4];
+					sprintf(buf, "%02x ", ReceiveData[i]);
+					OutputDebugString(buf);
 				}
 				OutputDebugString("\n");
-				*/
+*/
 				if (res == ExpectedReceiveLength)
 				{
 					return 1;   // Success!
@@ -595,6 +603,9 @@ UINT UsbInit()
 	OutputDebugString(szMsg);
 
 #ifdef HID_API_CALL
+	OutputDebugString("hidapi version : ");
+	OutputDebugString(hid_version_str());
+	OutputDebugString("\n");
 	if (hid_init() != 0)
 		return -1;
 #endif

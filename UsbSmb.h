@@ -31,8 +31,8 @@ USBSMB_API BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len,
 USBSMB_API BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf);
 USBSMB_API BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue);
 USBSMB_API BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue);
-//USBSMB_API BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf);
-//USBSMB_API BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf);
+USBSMB_API BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf);
+USBSMB_API BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf);
 USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val);
 USBSMB_API BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pBuf);
 USBSMB_API BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand);
