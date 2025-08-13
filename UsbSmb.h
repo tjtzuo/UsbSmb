@@ -36,7 +36,7 @@ USBSMB_API BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf);
 USBSMB_API BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val);
 USBSMB_API BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pBuf);
 USBSMB_API BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand);
-USBSMB_API void UsbHidReset();
+USBSMB_API void UsbReset();
 USBSMB_API int UsbOpen(int nDev);
 USBSMB_API int UsbClose();
 USBSMB_API int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD *ReceiveLength, UINT SendDelay, UINT ReceiveDelay);

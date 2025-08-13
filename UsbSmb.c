@@ -505,20 +505,20 @@ BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue)
 
 BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf)
 {
-	BYTE buf[35];
-	DWORD RecvLength = 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[0] = WRITE_EEPROM;	// send module command
-	buf[1] = HIBYTE(loc);
-	buf[2] = LOBYTE(loc);
-	memcpy(&buf[3], pBuf, 32);
+	buf[1] = WRITE_EEPROM;	// send module command
+	buf[2] = HIBYTE(loc);
+	buf[3] = LOBYTE(loc);
+	memcpy(&buf[4], pBuf, 32);
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 35, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 500, 1000) == 1)
 		{
-			if (RecvLength == 2 && buf[0] == WRITE_EEPROM && buf[1] == 1)
+			if (buf[1] == WRITE_EEPROM && buf[2] == 1)
 			{
 				bSuccess = TRUE;
 			}
@@ -532,21 +532,21 @@ BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf)
 BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf)
 {
 	UINT nReadBytes = 32;
-	BYTE buf[34];
-	DWORD RecvLength = nReadBytes + 2;
+	BYTE buf[65] = { 0 };
+	DWORD RecvLength = sizeof(buf);//nReadBytes + 2;
 	BOOL bSuccess = FALSE;
 
-	buf[0] = READ_EEPROM;	// send module command
-	buf[1] = HIBYTE(loc);
-	buf[2] = LOBYTE(loc);
+	buf[1] = READ_EEPROM;	// send module command
+	buf[2] = HIBYTE(loc);
+	buf[3] = LOBYTE(loc);
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, 3, buf, &RecvLength, 500, 1000))
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 500, 1000) == 1)
 		{
-			if (RecvLength == nReadBytes + 2 && buf[0] == READ_EEPROM && buf[1] == nReadBytes)
+			if (buf[1] == READ_EEPROM && buf[2] == nReadBytes)
 			{
-				memcpy(pBuf, &buf[2], buf[1]);
+				memcpy(pBuf, &buf[3], buf[2]);
 
 				bSuccess = TRUE;
 			}
@@ -582,7 +582,7 @@ BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand)
 	return bSuccess;
 }
 
-void UsbHidReset()
+void UsbReset()
 {
 	if (UsbOpen(0) == NO_ERROR)
 	{
@@ -591,6 +591,7 @@ void UsbHidReset()
 		SendReceivePacket(buf, RecvLength, buf, &RecvLength, 10, 10);
 	}
 	UsbClose();
+	MyDeviceDetected = FALSE;
 }
 
 UINT UsbInit()
