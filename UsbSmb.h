@@ -45,3 +45,6 @@ USBSMB_API BOOL CalcWCrc(PBYTE buf);
 #ifdef  __cplusplus
 }
 #endif
+
+#define MAX_BUF	65
+

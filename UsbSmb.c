@@ -10,15 +10,29 @@
 #define	READ_EEDATA		0x04
 #define	WRITE_EEDATA	0x05
 
+// registered SPI control command
+#define WRITE_SPI		0x10
+#define READ_SPI		0x11
+#define WRITING_SPI		0x12
+#define WRITEREAD_SPI	0x13
+#define BURSTREAD_SPI	0x14
+
 #define WRITE_HDQ		0x22		// registered HDQ control command
 #define READ_HDQ		0x23		// registered HDQ control command
 
-#define WRITE_EEPROM	0x34		// registered EEPROM control command
-#define READ_EEPROM		0x35		// registered EEPROM control command
+#define WRITE_EEPROM_32	0x34		// registered EEPROM control command
+#define READ_EEPROM_32	0x35		// registered EEPROM control command
+#define WRITE_EEPROM_60	0x36		// registered EEPROM control command
+#define READ_EEPROM_60	0x37		// registered EEPROM control command
 
 #define WRITE_CMD		0x40		// registered I2C control command
 #define READ_CMD		0x41		// registered I2C control command
+/*
 #define READ_CMD2		0x46		// registered I2C control command
+*/
+// USB bridge GPIO control command
+#define IO_WR			0xF0
+#define IO_RD			0xF1
 
 #define IO_CMD			0xF1		// USB bridge GPIO control command
 #define RESET			0xFF
@@ -361,7 +375,7 @@ int SendReceivePacket(BYTE *SendData, DWORD SendLength, BYTE *ReceiveData, DWORD
 
 WORD UsbGetVersion(int nDev)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	WORD wVersion = 0;
 
@@ -392,7 +406,7 @@ WORD UsbGetVersion(int nDev)
 
 BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -423,7 +437,7 @@ BOOL UsbSmbWrite(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf
 BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 {
 	UINT nReadBytes = len + bPEC;
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -454,7 +468,7 @@ BOOL UsbSmbRead(BYTE nDev, BYTE addr, BYTE cmd, BYTE bPEC, BYTE len, PBYTE pBuf)
 
 BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength =  sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -479,7 +493,7 @@ BOOL UsbHdqWrite(BYTE nDev, BYTE byCommand, BYTE byValue)
 
 BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -505,20 +519,20 @@ BOOL UsbHdqRead(BYTE nDev, BYTE byCommand, PBYTE pValue)
 
 BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
-	buf[1] = WRITE_EEPROM;	// send module command
+	buf[1] = WRITE_EEPROM_32;	// send module command
 	buf[2] = HIBYTE(loc);
 	buf[3] = LOBYTE(loc);
 	memcpy(&buf[4], pBuf, 32);
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 500, 1000) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 5, 10) == 1)
 		{
-			if (buf[1] == WRITE_EEPROM && buf[2] == 1)
+			if (buf[1] == WRITE_EEPROM_32 && buf[2] == 1)
 			{
 				bSuccess = TRUE;
 			}
@@ -532,19 +546,19 @@ BOOL UsbEepromWrite(BYTE nDev, WORD loc, PBYTE pBuf)
 BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf)
 {
 	UINT nReadBytes = 32;
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);//nReadBytes + 2;
 	BOOL bSuccess = FALSE;
 
-	buf[1] = READ_EEPROM;	// send module command
+	buf[1] = READ_EEPROM_32;	// send module command
 	buf[2] = HIBYTE(loc);
 	buf[3] = LOBYTE(loc);
 
 	if (UsbOpen(nDev) == NO_ERROR)
 	{
-		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 500, 1000) == 1)
+		if (SendReceivePacket(buf, RecvLength, buf, &RecvLength, 5, 10) == 1)
 		{
-			if (buf[1] == READ_EEPROM && buf[2] == nReadBytes)
+			if (buf[1] == READ_EEPROM_32 && buf[2] == nReadBytes)
 			{
 				memcpy(pBuf, &buf[3], buf[2]);
 
@@ -559,7 +573,7 @@ BOOL UsbEepromRead(BYTE nDev, WORD loc, PBYTE pBuf)
 
 BOOL UsbSendIoCmd(BYTE nDev, BYTE byCommand)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -586,7 +600,7 @@ void UsbReset()
 {
 	if (UsbOpen(0) == NO_ERROR)
 	{
-		BYTE buf[65] = { 0, RESET, 0 };
+		BYTE buf[MAX_BUF] = { 0, RESET, 0 };
 		DWORD RecvLength = sizeof(buf);
 		SendReceivePacket(buf, RecvLength, buf, &RecvLength, 10, 10);
 	}
@@ -616,7 +630,7 @@ UINT UsbInit()
 
 BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
@@ -642,7 +656,7 @@ BOOL UsbEedataWrite(BYTE nDev, BYTE loc, BYTE val)
 
 BOOL UsbEedataRead(BYTE nDev, BYTE loc, PBYTE pVal)
 {
-	BYTE buf[65] = { 0 };
+	BYTE buf[MAX_BUF] = { 0 };
 	DWORD RecvLength = sizeof(buf);
 	BOOL bSuccess = FALSE;
 
