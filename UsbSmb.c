@@ -613,7 +613,7 @@ UINT UsbInit()
 	DWORD dwVersion = OPUSBGetDLLVersion();
 
 	char szMsg[100];
-	sprintf(szMsg, "Optigate USB HID API DLL Version : %x.%x.%x.%x\n",
+	sprintf(szMsg, "Optigate USB HID API Version : %x.%x.%x.%x\n",
 		HIBYTE(HIWORD(dwVersion)), LOBYTE(HIWORD(dwVersion)), HIBYTE(LOWORD(dwVersion)), LOBYTE(LOWORD(dwVersion)));
 	OutputDebugString(szMsg);
 
